@@ -1,5 +1,3 @@
-/* eslint-disable no-underscore-dangle */ /* eslint-disable no-underscore-dangle
-*/
 <template>
   <div>
     <canvas ref="face" :width="canvasWidth" :height="canvasHeight"></canvas>
@@ -8,7 +6,7 @@
 
 <script>
 import ml5 from "ml5";
-// import p5 from "p5";
+import DrawingFunctions from "@/lib/DrawingFunctions";
 
 export default {
   name: "HelloWorld",
@@ -25,7 +23,8 @@ export default {
         withDescriptors: false
       },
       faceapi: null,
-      detections: null
+      detections: null,
+      environment: null
     };
   },
   computed: {
@@ -44,7 +43,6 @@ export default {
   },
   methods: {
     async make() {
-      // get the video
       this.video = await this.getVideo();
 
       this.faceapi = ml5.faceApi(
@@ -52,6 +50,7 @@ export default {
         this.detection_options,
         this.modelReady
       );
+      this.environment = DrawingFunctions.setupEnvironment();
     },
     modelReady() {
       console.log("ready!");
@@ -62,57 +61,19 @@ export default {
         console.log(err);
         return;
       }
-
-      // console.log(result)
       const detections = result;
 
-      // Clear part of the canvas
       this.ctx.fillStyle = "#000000";
       this.ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
-
       this.ctx.drawImage(this.video, 0, 0, this.canvasWidth, this.canvasHeight);
 
       if (detections) {
         if (detections.length > 0) {
-          this.drawLandmarks(detections);
+          DrawingFunctions.drawLandmarks(this.ctx, detections);
         }
       }
-      this.faceapi.detect(this.gotResults);
-    },
-    drawLandmarks(detections) {
-      for (let i = 0; i < detections.length; i++) {
-        const { mouth } = detections[i].parts;
-        const { nose } = detections[i].parts;
-        const { leftEye } = detections[i].parts;
-        const { rightEye } = detections[i].parts;
-        const { rightEyeBrow } = detections[i].parts;
-        const { leftEyeBrow } = detections[i].parts;
-
-        this.drawPart(nose, false);
-        this.drawPart(mouth, true);
-        this.drawPart(leftEye, true);
-        this.drawPart(leftEyeBrow, false);
-        this.drawPart(rightEye, true);
-        this.drawPart(rightEyeBrow, false);
-      }
-    },
-    drawPart(feature, closed) {
-      this.ctx.beginPath();
-      for (let i = 0; i < feature.length; i++) {
-        const x = feature[i]._x;
-        const y = feature[i]._y;
-
-        if (i === 0) {
-          this.ctx.moveTo(x, y);
-        } else {
-          this.ctx.lineTo(x, y);
-        }
-      }
-
-      if (closed === true) {
-        this.ctx.closePath();
-      }
-      this.ctx.stroke();
+      DrawingFunctions.tick(this.environment);
+      setTimeout(this.faceapi.detect(this.gotResults), 20);
     },
     async getVideo() {
       // Grab elements, create settings, etc.
