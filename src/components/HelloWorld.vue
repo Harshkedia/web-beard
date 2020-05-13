@@ -109,7 +109,7 @@ export default {
     },
     addVideo() {
       this.ctx.drawImage(this.video, 0, 0, this.canvasWidth, this.canvasHeight);
-      setTimeout(this.addVideo, 20);
+      setTimeout(this.addVideo, 200);
     }
   }
 };
