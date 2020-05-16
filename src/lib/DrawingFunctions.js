@@ -1,11 +1,11 @@
-import setup from "./Agents";
+import AgentManager from "./Agents";
 
 class DrawingFunctions {
-  static drawLandmarks(ctx, detections) {
+  static drawLandmarks(ctx, detections, environment) {
     for (let i = 0; i < detections.length; i++) {
-      const { jawOutline } = detections[i].parts;
-      this.drawPart(ctx, this.getBeard(jawOutline));
-      this.fillBeard(ctx);
+      // const { jawOutline } = detections[i].parts;
+      // this.drawPart(ctx, this.getBeard(jawOutline));
+      this.fillBeard(ctx, environment);
     }
   }
 
@@ -24,7 +24,7 @@ class DrawingFunctions {
     return regular.concat(reversed);
   }
 
-  static fillBeard(ctx) {
+  static fillBeard(ctx, environment) {
     const xMin = 0;
     const xMax = 800;
     const yMin = 0;
@@ -48,14 +48,17 @@ class DrawingFunctions {
         points.push(pt);
       }
     }
-    points.forEach(pt => {
-      this.drawPoint(ctx, pt.x, pt.y);
+
+    this.tick(environment, points);
+    ctx.fillStyle = "black";
+    environment.getAgents().forEach(agent => {
+      this.drawPoint(ctx, agent.get("x"), agent.get("y"));
     });
   }
 
   static drawPoint(ctx, x, y) {
     ctx.beginPath();
-    ctx.ellipse(x, y, 5, 5, Math.PI / 4, 0, 2 * Math.PI);
+    ctx.ellipse(x, y, 1, 1, Math.PI / 4, 0, 2 * Math.PI);
     ctx.fill();
   }
 
@@ -74,12 +77,16 @@ class DrawingFunctions {
     ctx.stroke();
   }
 
-  static setupEnvironment() {
-    return setup();
+  static setupEnvironment(numBoids, width, height) {
+    return AgentManager.setup(numBoids, width, height);
   }
 
-  static tick(environment) {
-    environment.tick();
+  static tick(environment, points) {
+    const agents = environment.getAgents();
+    agents.forEach((agent, index) => {
+      const targetPt = points[index];
+      AgentManager.tick(agent, targetPt);
+    });
   }
 
   /**

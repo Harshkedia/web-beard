@@ -50,7 +50,11 @@ export default {
         this.detection_options,
         this.modelReady
       );
-      this.environment = DrawingFunctions.setupEnvironment();
+      this.environment = DrawingFunctions.setupEnvironment(
+        100,
+        this.canvasWidth,
+        this.canvasHeight
+      );
     },
     modelReady() {
       console.log("ready!");
@@ -69,10 +73,13 @@ export default {
 
       if (detections) {
         if (detections.length > 0) {
-          DrawingFunctions.drawLandmarks(this.ctx, detections);
+          DrawingFunctions.drawLandmarks(
+            this.ctx,
+            detections,
+            this.environment
+          );
         }
       }
-      DrawingFunctions.tick(this.environment);
       setTimeout(this.faceapi.detect(this.gotResults), 20);
     },
     async getVideo() {
